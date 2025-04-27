@@ -1,0 +1,71 @@
+services:
+#   app:
+#     build:
+#       context: .
+#       dockerfile: Dockerfile
+#     container_name: laravel_app
+#     working_dir: /var/www
+#     volumes:
+#       - .:/var/www
+#     networks:
+#       - laravel
+#     depends_on:
+#       - db
+
+#   web:
+#     image: nginx:alpine
+#     container_name: laravel_web
+#     ports:
+#       - "8000:80"
+#     volumes:
+#       - .:/var/www
+#       - ./docker/nginx/conf.d:/etc/nginx/conf.d
+#     depends_on:
+#       - app
+#     networks:
+#       - laravel
+
+#   db:
+#     image: postgres:15-alpine
+#     container_name: laravel_db
+#     ports:
+#       - "5432:5432"
+#     environment:
+#       POSTGRES_DB: crud_users
+#       POSTGRES_USER: mucyoumd
+#       POSTGRES_PASSWORD: Proumd&25
+#     volumes:
+#       - pgdata:/var/lib/postgresql/data
+#     networks:
+#       - laravel
+
+#   pgadmin:
+#     image: dpage/pgadmin4:latest
+#     container_name: pgadmin
+#     environment:
+#       PGADMIN_DEFAULT_EMAIL: admin@example.com 
+#       PGADMIN_DEFAULT_PASSWORD: admin     
+#     ports:
+#       - "5050:80"
+#     volumes:
+#       - pgadmin-data:/var/lib/pgadmin
+#     restart: unless-stopped
+#     networks:
+#     - laravel  # Add this line to connect pgAdmin to the same network
+
+#   composer:
+#     image: composer
+#     container_name: laravel_composer
+#     working_dir: /var/www
+#     volumes:
+#       - .:/var/www
+#     command: install
+#     networks:
+#       - laravel
+
+# networks:
+#   laravel:
+
+# volumes:
+#   pgdata:
+#   pgadmin-data:
