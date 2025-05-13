@@ -26,7 +26,7 @@ class UserController extends Controller
     {
         $validated = $request->validate([
             'email' => 'required|email|unique:users,email',
-            'password_hash' => 'required|string|min:6',
+            'password' => 'required|string|min:6',
             'role' => 'required|in:patient,doctor,customer,admin',
             'first_name' => 'required|string|max:80',
             'last_name' => 'required|string|max:80',
@@ -40,7 +40,7 @@ class UserController extends Controller
     {
         $validated = $request->validate([
             'email' => 'sometimes|email|unique:users,email,' . $user->user_id . ',user_id',
-            'password_hash' => 'sometimes|string|min:6',
+            'password' => 'sometimes|string|min:6',
             'role' => 'sometimes|in:patient,doctor,customer,admin',
             'first_name' => 'sometimes|string|max:80',
             'last_name' => 'sometimes|string|max:80',

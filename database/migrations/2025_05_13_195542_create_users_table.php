@@ -17,7 +17,7 @@ return new class extends Migration {
     Schema::create('users', function (Blueprint $table) {
         $table->uuid('user_id')->primary();
         $table->string('email', 80)->unique();
-        $table->text('password_hash');
+        $table->text('password');
         $table->enum('role', ['patient', 'doctor', 'customer', 'admin']); // Laravel internally maps to text
         $table->string('first_name', 80);
         $table->string('last_name', 80);
