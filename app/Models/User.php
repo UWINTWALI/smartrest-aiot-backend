@@ -23,4 +23,13 @@ class User extends Model
         'phone',
         'is_email_verified',
     ];
+    
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array<int, string>
+     */
+    protected $hidden = [
+        'password',
+    ];
 }
