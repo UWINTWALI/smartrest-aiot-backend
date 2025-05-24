@@ -11,6 +11,59 @@ class MessageController extends Controller
 {
     /**
      * Send message; supports Patient⇄Doctor or Customer⇄Support threads.
+     * 
+     * @OA\Post(
+     *     path="/messages",
+     *     summary="Send a new message",
+     *     description="Send a message to a recipient (patient to doctor, doctor to patient, customer to support)",
+     *     operationId="sendMessage",
+     *     tags={"Messaging"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"recipient_id", "body", "type"},
+     *             @OA\Property(property="recipient_id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+     *             @OA\Property(property="title", type="string", example="Sleep Report Discussion"),
+     *             @OA\Property(property="body", type="string", example="I've reviewed your latest sleep report and have some recommendations."),
+     *             @OA\Property(property="type", type="string", enum={"alert", "chat", "promo"}, example="chat")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Message sent successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Message sent successfully"),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Forbidden - Not authorized to message this recipient",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="You can only message your assigned doctors")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Recipient not found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Recipient not found")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="The given data was invalid."),
+     *             @OA\Property(property="errors", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
      */
     public function store(Request $request)
     {
@@ -77,6 +130,51 @@ class MessageController extends Controller
     
     /**
      * Fetch or poll a specific thread.
+     * 
+     * @OA\Get(
+     *     path="/messages/thread/{conversationId}",
+     *     summary="Get conversation thread",
+     *     description="Retrieve message thread between the current user and another user or from a specific message",
+     *     operationId="getMessageThread",
+     *     tags={"Messaging"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="conversationId",
+     *         in="path",
+     *         required=true,
+     *         description="User ID or message ID (prefixed with 'msg_')",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Message thread",
+     *         @OA\JsonContent(
+     *             @OA\Property(
+     *                 property="messages",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     type="object",
+     *                     @OA\Property(property="message_id", type="string", example="msg_12345"),
+     *                     @OA\Property(property="sender_id", type="string", format="uuid"),
+     *                     @OA\Property(property="recipient_id", type="string", format="uuid"),
+     *                     @OA\Property(property="title", type="string"),
+     *                     @OA\Property(property="body", type="string"),
+     *                     @OA\Property(property="type", type="string", enum={"alert", "chat", "promo"}),
+     *                     @OA\Property(property="is_read", type="boolean"),
+     *                     @OA\Property(property="sent_at", type="string", format="date-time")
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Thread not found"
+     *     )
+     * )
      */
     public function getThread(Request $request, $conversationId)
     {
@@ -132,6 +230,39 @@ class MessageController extends Controller
     
     /**
      * Get unread alerts for current user.
+     * 
+     * @OA\Get(
+     *     path="/messages/notifications",
+     *     summary="Get user notifications",
+     *     description="Retrieve unread notifications and alerts for the current user",
+     *     operationId="getUserNotifications",
+     *     tags={"Messaging"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="User notifications",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="unread_count", type="integer", example=5),
+     *             @OA\Property(
+     *                 property="notifications",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     type="object",
+     *                     @OA\Property(property="message_id", type="string"),
+     *                     @OA\Property(property="sender_id", type="string", format="uuid"),
+     *                     @OA\Property(property="title", type="string"),
+     *                     @OA\Property(property="body", type="string"),
+     *                     @OA\Property(property="type", type="string", enum={"alert", "chat", "promo"}),
+     *                     @OA\Property(property="sent_at", type="string", format="date-time")
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
      */
     public function getNotifications(Request $request)
     {
@@ -151,6 +282,41 @@ class MessageController extends Controller
     
     /**
      * Mark alert as read / handled.
+     * 
+     * @OA\Put(
+     *     path="/messages/notifications/{id}",
+     *     summary="Mark notification as read",
+     *     description="Mark a specific notification as read",
+     *     operationId="markNotificationRead",
+     *     tags={"Messaging"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Notification ID",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Notification acknowledged",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Notification acknowledged")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized - Not your notification"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Notification not found"
+     *     )
+     * )
      */
     public function acknowledgeNotification(Request $request, $id)
     {

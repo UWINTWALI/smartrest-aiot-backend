@@ -61,6 +61,10 @@ use Illuminate\Routing\Controller as BaseController;
  *     name="System",
  *     description="Device Status & Management"
  * )
+ * @OA\Tag(
+ *     name="Authentication",
+ *     description="User Authentication & Registration"
+ * )
  */
 abstract class Controller extends BaseController
 {

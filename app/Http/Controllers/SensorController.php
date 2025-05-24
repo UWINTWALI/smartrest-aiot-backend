@@ -10,11 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use OpenApi\Annotations as OA;
 
 /**
- * @OA\Info(
- *      title="Sensor API",
- *      description="API for sensor data collection and retrieval",
- *      version="1.0.0"
- * )
+ * Controller for handling sensor data collection and retrieval
  */
 class SensorController extends Controller
 {
@@ -107,6 +103,78 @@ class SensorController extends Controller
     
     /**
      * Get latest snapshot for the requesting user/patient.
+     * 
+     * @OA\Get(
+     *     path="/sensors/latest",
+     *     summary="Get latest sensor readings",
+     *     description="Get latest readings for each sensor type for the patient",
+     *     operationId="getLatestSensorData",
+     *     tags={"Sensors"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="patient_id",
+     *         in="query",
+     *         description="Patient ID (required for doctors, not for patients)",
+     *         required=false,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Latest sensor readings",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="patient_id", type="string", format="uuid"),
+     *             @OA\Property(property="timestamp", type="string", format="date-time"),
+     *             @OA\Property(
+     *                 property="readings",
+     *                 type="object",
+     *                 @OA\Property(
+     *                     property="heart_rate",
+     *                     type="object",
+     *                     @OA\Property(property="value", type="number", example=72.5),
+     *                     @OA\Property(property="unit", type="string", example="bpm"),
+     *                     @OA\Property(property="timestamp", type="string", format="date-time")
+     *                 ),
+     *                 @OA\Property(
+     *                     property="breathing_rate",
+     *                     type="object",
+     *                     @OA\Property(property="value", type="number", example=16.8),
+     *                     @OA\Property(property="unit", type="string", example="breaths/min"),
+     *                     @OA\Property(property="timestamp", type="string", format="date-time")
+     *                 ),
+     *                 @OA\Property(
+     *                     property="temperature",
+     *                     type="object",
+     *                     @OA\Property(property="value", type="number", example=36.7),
+     *                     @OA\Property(property="unit", type="string", example="°C"),
+     *                     @OA\Property(property="timestamp", type="string", format="date-time")
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized - No access to this patient",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="You do not have access to this patient")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Patient not found"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="The given data was invalid."),
+     *             @OA\Property(property="errors", type="object")
+     *         )
+     *     )
+     * )
      */
     public function getLatest(Request $request)
     {
@@ -155,7 +223,101 @@ class SensorController extends Controller
     }
     
     /**
-     * Get paged time‑series data with query params.
+     * Get historical sensor data for analytics and trends.
+     * 
+     * @OA\Get(
+     *     path="/sensors/history",
+     *     summary="Get historical sensor data",
+     *     description="Retrieve historical sensor readings with filtering options",
+     *     operationId="getSensorHistory",
+     *     tags={"Sensors"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="patient_id",
+     *         in="query",
+     *         description="Patient ID (required for doctors, not for patients)",
+     *         required=false,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Parameter(
+     *         name="sensor_type",
+     *         in="query",
+     *         description="Filter by sensor type",
+     *         required=false,
+     *         @OA\Schema(
+     *             type="string",
+     *             enum={"pressure","heart_rate","breathing_rate","temperature","humidity","body_movement","posture","vibration","sleep_apnea"}
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="start_date",
+     *         in="query",
+     *         description="Start date (YYYY-MM-DD)",
+     *         required=false,
+     *         @OA\Schema(type="string", format="date")
+     *     ),
+     *     @OA\Parameter(
+     *         name="end_date",
+     *         in="query",
+     *         description="End date (YYYY-MM-DD)",
+     *         required=false,
+     *         @OA\Schema(type="string", format="date")
+     *     ),
+     *     @OA\Parameter(
+     *         name="interval",
+     *         in="query",
+     *         description="Aggregation interval",
+     *         required=false,
+     *         @OA\Schema(
+     *             type="string",
+     *             enum={"raw", "minute", "hour", "day"},
+     *             default="raw"
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Historical sensor data",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="patient_id", type="string", format="uuid"),
+     *             @OA\Property(
+     *                 property="readings",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     type="object",
+     *                     @OA\Property(property="sensor_type", type="string", example="heart_rate"),
+     *                     @OA\Property(property="sensor_value", type="number", example=72.5),
+     *                     @OA\Property(property="sensor_unit", type="string", example="bpm"),
+     *                     @OA\Property(property="timestamp", type="string", format="date-time"),
+     *                     @OA\Property(property="additional_metadata", type="object")
+     *                 )
+     *             ),
+     *             @OA\Property(property="aggregation", type="string", example="raw"),
+     *             @OA\Property(property="period", type="object",
+     *                 @OA\Property(property="start", type="string", format="date-time"),
+     *                 @OA\Property(property="end", type="string", format="date-time")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized - No access to this patient",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="You do not have access to this patient")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="The given data was invalid."),
+     *             @OA\Property(property="errors", type="object")
+     *         )
+     *     )
+     * )
      */
     public function getHistory(Request $request)
     {

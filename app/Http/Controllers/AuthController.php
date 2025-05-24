@@ -18,11 +18,7 @@ use Laravel\Sanctum\HasApiTokens;
 use OpenApi\Annotations as OA;
 
 /**
- * @OA\Info(
- *      title="Authentication API",
- *      description="API for user authentication and management",
- *      version="1.0.0"
- * )
+ * Authentication controller handles user registration, login, and management
  */
 class AuthController extends Controller
 {
@@ -128,6 +124,40 @@ class AuthController extends Controller
     
     /**
      * Verify email address via token.
+     * 
+     * @OA\Get(
+     *     path="/auth/email/verify/{id}/{hash}",
+     *     summary="Verify email address",
+     *     description="Verify user email address via verification link",
+     *     operationId="verifyEmail",
+     *     tags={"Authentication"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="User ID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Parameter(
+     *         name="hash",
+     *         in="path",
+     *         required=true,
+     *         description="Email verification hash",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Email verified successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Email verified successfully")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
      */
     public function verifyEmail(EmailVerificationRequest $request)
     {
@@ -211,6 +241,26 @@ class AuthController extends Controller
     
     /**
      * Logout user (revoke tokens).
+     * 
+     * @OA\Post(
+     *     path="/auth/logout",
+     *     summary="Logout user",
+     *     description="Revoke the current access token",
+     *     operationId="authLogout",
+     *     tags={"Authentication"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Logged out successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Logged out successfully")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
      */
     public function logout(Request $request)
     {
@@ -223,6 +273,27 @@ class AuthController extends Controller
     
     /**
      * Get authenticated user profile.
+     * 
+     * @OA\Get(
+     *     path="/auth/me",
+     *     summary="Get user profile",
+     *     description="Returns the authenticated user's profile and role-specific information",
+     *     operationId="authMe",
+     *     tags={"Authentication"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="User profile",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             ref="#/components/schemas/User"
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
      */
     public function me(Request $request)
     {
@@ -240,6 +311,27 @@ class AuthController extends Controller
     
     /**
      * Refresh token.
+     * 
+     * @OA\Post(
+     *     path="/auth/refresh",
+     *     summary="Refresh token",
+     *     description="Revoke existing tokens and issue a new access token",
+     *     operationId="authRefresh",
+     *     tags={"Authentication"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Token refreshed successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Token refreshed successfully"),
+     *             @OA\Property(property="token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
      */
     public function refresh(Request $request)
     {
@@ -256,6 +348,43 @@ class AuthController extends Controller
     
     /**
      * Send password reset link.
+     * 
+     * @OA\Post(
+     *     path="/auth/forgot-password",
+     *     summary="Send password reset link",
+     *     description="Send a password reset link to the provided email address",
+     *     operationId="forgotPassword",
+     *     tags={"Authentication"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"email"},
+     *             @OA\Property(property="email", type="string", format="email", example="john@example.com")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Reset link sent successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Reset link sent to your email")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Unable to send reset link",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Unable to send reset link")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="The given data was invalid."),
+     *             @OA\Property(property="errors", type="object")
+     *         )
+     *     )
+     * )
      */
     public function forgotPassword(Request $request)
     {
@@ -274,6 +403,46 @@ class AuthController extends Controller
     
     /**
      * Reset password.
+     * 
+     * @OA\Post(
+     *     path="/auth/reset-password",
+     *     summary="Reset password",
+     *     description="Reset user password using the reset token",
+     *     operationId="resetPassword",
+     *     tags={"Authentication"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"token", "email", "password", "password_confirmation"},
+     *             @OA\Property(property="token", type="string", example="1234567890abcdef"),
+     *             @OA\Property(property="email", type="string", format="email", example="john@example.com"),
+     *             @OA\Property(property="password", type="string", format="password", example="newpassword123"),
+     *             @OA\Property(property="password_confirmation", type="string", format="password", example="newpassword123")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Password reset successful",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Password has been reset")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Unable to reset password",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Unable to reset password")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="The given data was invalid."),
+     *             @OA\Property(property="errors", type="object")
+     *         )
+     *     )
+     * )
      */
     public function resetPassword(Request $request)
     {
@@ -300,6 +469,50 @@ class AuthController extends Controller
     
     /**
      * Change password while logged in.
+     * 
+     * @OA\Post(
+     *     path="/auth/change-password",
+     *     summary="Change password",
+     *     description="Change the authenticated user's password",
+     *     operationId="changePassword",
+     *     tags={"Authentication"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"current_password", "password", "password_confirmation"},
+     *             @OA\Property(property="current_password", type="string", format="password", example="currentpassword123"),
+     *             @OA\Property(property="password", type="string", format="password", example="newpassword123"),
+     *             @OA\Property(property="password_confirmation", type="string", format="password", example="newpassword123")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Password changed successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Password changed successfully")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Current password is incorrect",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Current password is incorrect")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="The given data was invalid."),
+     *             @OA\Property(property="errors", type="object")
+     *         )
+     *     )
+     * )
      */
     public function changePassword(Request $request)
     {
@@ -327,6 +540,46 @@ class AuthController extends Controller
     
     /**
      * Social login (OAuth).
+     * 
+     * @OA\Post(
+     *     path="/auth/social-login",
+     *     summary="Social login",
+     *     description="Authenticate through third-party OAuth providers",
+     *     operationId="socialLogin",
+     *     tags={"Authentication"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"provider", "token"},
+     *             @OA\Property(property="provider", type="string", enum={"google", "facebook", "apple"}, example="google"),
+     *             @OA\Property(property="token", type="string", example="ya29.a0AfH6SMBmJ...")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Login successful",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Login successful"),
+     *             @OA\Property(property="user", type="object"),
+     *             @OA\Property(property="token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="The given data was invalid."),
+     *             @OA\Property(property="errors", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=501,
+     *         description="Not implemented",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Social login is not implemented yet")
+     *         )
+     *     )
+     * )
      */
     public function socialLogin(Request $request)
     {

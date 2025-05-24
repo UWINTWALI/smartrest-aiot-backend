@@ -192,7 +192,14 @@ return [
                     ]
                 ],
                 */
-
+                
+                'bearerAuth' => [
+                    'type' => 'http',
+                    'description' => 'Bearer token authentication',
+                    'scheme' => 'bearer',
+                    'bearerFormat' => 'JWT',
+                ],
+                
                 /* Open API 3.0 support
                 'passport' => [ // Unique name of security
                     'type' => 'oauth2', // The type of the security scheme. Valid values are "basic", "apiKey" or "oauth2".
@@ -237,7 +244,7 @@ return [
          * Set this to `true` in development mode so that docs would be regenerated on each request
          * Set this to `false` to disable swagger generation on production
          */
-        'generate_always' => env('L5_SWAGGER_GENERATE_ALWAYS', false),
+        'generate_always' => env('L5_SWAGGER_GENERATE_ALWAYS', true),
 
         /*
          * Set this to `true` to generate a copy of documentation in yaml format

@@ -11,6 +11,89 @@ class SystemController extends Controller
 {
     /**
      * Get uptime, firmware version, sensor health of a mattress unit.
+     * 
+     * @OA\Get(
+     *     path="/system/status",
+     *     summary="Get smart bed system status",
+     *     description="Retrieve system status including uptime, firmware version and sensor health",
+     *     operationId="getSystemStatus",
+     *     tags={"System"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="bed_id",
+     *         in="query",
+     *         description="Bed identifier",
+     *         required=true,
+     *         @OA\Schema(type="string", example="BED-12345")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="System status information",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="bed_id", type="string", example="BED-12345"),
+     *             @OA\Property(property="status", type="string", example="online"),
+     *             @OA\Property(property="uptime", type="string", example="3d 7h 22m"),
+     *             @OA\Property(
+     *                 property="firmware",
+     *                 type="object",
+     *                 @OA\Property(property="version", type="string", example="v2.3.1"),
+     *                 @OA\Property(property="last_updated", type="string", format="date-time")
+     *             ),
+     *             @OA\Property(
+     *                 property="battery",
+     *                 type="object",
+     *                 @OA\Property(property="level", type="integer", example=82),
+     *                 @OA\Property(property="estimated_remaining", type="string", example="4d 12h")
+     *             ),
+     *             @OA\Property(
+     *                 property="sensors",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     type="object",
+     *                     @OA\Property(property="type", type="string"),
+     *                     @OA\Property(property="status", type="string"),
+     *                     @OA\Property(property="last_reading", type="string", format="date-time")
+     *                 )
+     *             ),
+     *             @OA\Property(
+     *                 property="connectivity",
+     *                 type="object",
+     *                 @OA\Property(property="type", type="string", example="wifi"),
+     *                 @OA\Property(property="strength", type="string", example="good"),
+     *                 @OA\Property(property="last_sync", type="string", format="date-time")
+     *             ),
+     *             @OA\Property(
+     *                 property="recent_logs",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     type="object",
+     *                     @OA\Property(property="severity", type="string"),
+     *                     @OA\Property(property="message", type="string"),
+     *                     @OA\Property(property="logged_at", type="string", format="date-time")
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized - Admin or doctor access required",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Unauthorized")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="The given data was invalid."),
+     *             @OA\Property(property="errors", type="object")
+     *         )
+     *     )
+     * )
      */
     public function getStatus(Request $request)
     {
@@ -92,6 +175,51 @@ class SystemController extends Controller
     
     /**
      * Trigger remote restart / soft reset of device.
+     * 
+     * @OA\Post(
+     *     path="/system/reboot",
+     *     summary="Reboot smart bed system",
+     *     description="Remotely trigger a restart of the smart bed system",
+     *     operationId="rebootSystem",
+     *     tags={"System"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"bed_id"},
+     *             @OA\Property(property="bed_id", type="string", example="BED-12345")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Reboot initiated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Reboot command sent successfully"),
+     *             @OA\Property(property="bed_id", type="string", example="BED-12345"),
+     *             @OA\Property(property="reboot_initiated_at", type="string", format="date-time"),
+     *             @OA\Property(property="estimated_completion", type="string", format="date-time")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized - Admin access required",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Unauthorized - only admins can reboot devices")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="The given data was invalid."),
+     *             @OA\Property(property="errors", type="object")
+     *         )
+     *     )
+     * )
      */
     public function reboot(Request $request)
     {

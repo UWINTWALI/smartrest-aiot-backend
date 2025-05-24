@@ -11,11 +11,7 @@ use Illuminate\Support\Facades\DB;
 use OpenApi\Annotations as OA;
 
 /**
- * @OA\Info(
- *      title="User Management API",
- *      description="API for user management operations",
- *      version="1.0.0"
- * )
+ * Controller for user management operations
  */
 class UserController extends Controller
 {
@@ -163,9 +159,62 @@ class UserController extends Controller
         
         return response()->json($user);
     }
-    
-    /**
+      /**
      * Create user manually (Admin onboarding).
+     * 
+     * @OA\Post(
+     *     path="/users",
+     *     summary="Create a new user",
+     *     description="Create a new user manually (Admin only)",
+     *     operationId="userStore",
+     *     tags={"Users"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         description="User data",
+     *         @OA\JsonContent(
+     *             required={"first_name","last_name","email","password","role"},
+     *             @OA\Property(property="first_name", type="string", example="John"),
+     *             @OA\Property(property="last_name", type="string", example="Doe"),
+     *             @OA\Property(property="email", type="string", format="email", example="john@example.com"),
+     *             @OA\Property(property="phone", type="string", example="1234567890"),
+     *             @OA\Property(property="password", type="string", format="password", example="password123"),
+     *             @OA\Property(property="role", type="string", enum={"patient", "doctor", "customer", "admin"}),
+     *             @OA\Property(property="license_no", type="string", example="DOC12345"),
+     *             @OA\Property(property="specialty", type="string", example="Cardiology"),
+     *             @OA\Property(property="national_id", type="string", example="ID12345678"),
+     *             @OA\Property(property="date_of_birth", type="string", format="date", example="1990-01-01"),
+     *             @OA\Property(property="sex", type="string", enum={"M", "F", "O"}, example="M")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="User created successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="User created successfully"),
+     *             @OA\Property(property="user", ref="#/components/schemas/User")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized - Admin access required",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Unauthorized")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="The given data was invalid."),
+     *             @OA\Property(property="errors", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
      */
     public function store(Request $request)
     {
@@ -233,9 +282,70 @@ class UserController extends Controller
             ], 500);
         }
     }
-    
-    /**
+      /**
      * Update profile / role (Admin; self‑update allowed on own record).
+     * 
+     * @OA\Put(
+     *     path="/users/{userId}",
+     *     summary="Update user details",
+     *     description="Update an existing user (Admin or self access only)",
+     *     operationId="userUpdate",
+     *     tags={"Users"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="userId",
+     *         in="path",
+     *         description="User ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="first_name", type="string", example="John"),
+     *             @OA\Property(property="last_name", type="string", example="Smith"),
+     *             @OA\Property(property="email", type="string", format="email", example="john@example.com"),
+     *             @OA\Property(property="phone", type="string", example="1234567890"),
+     *             @OA\Property(property="role", type="string", enum={"patient", "doctor", "customer", "admin"}),
+     *             @OA\Property(property="license_no", type="string", example="DOC12345"),
+     *             @OA\Property(property="specialty", type="string", example="Cardiology"),
+     *             @OA\Property(property="national_id", type="string", example="ID12345678"),
+     *             @OA\Property(property="date_of_birth", type="string", format="date", example="1990-01-01"),
+     *             @OA\Property(property="sex", type="string", enum={"M", "F", "O"}, example="M")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="User updated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="User updated successfully"),
+     *             @OA\Property(property="user", ref="#/components/schemas/User")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized access",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Unauthorized")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="User not found"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="The given data was invalid."),
+     *             @OA\Property(property="errors", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
      */
     public function update(Request $request, $userId)
     {
@@ -291,9 +401,46 @@ class UserController extends Controller
             ], 500);
         }
     }
-    
-    /**
+      /**
      * Deactivate or hard‑delete user (Admin).
+     * 
+     * @OA\Delete(
+     *     path="/users/{userId}",
+     *     summary="Delete a user",
+     *     description="Deactivate or hard delete a user (Admin only)",
+     *     operationId="userDestroy",
+     *     tags={"Users"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="userId",
+     *         in="path",
+     *         description="User ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="User deleted successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="User deleted successfully")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized - Admin access required",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Unauthorized")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="User not found"
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
      */
     public function destroy(Request $request, $userId)
     {
