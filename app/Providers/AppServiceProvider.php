@@ -3,6 +3,14 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Database\QueryException;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Exception;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +27,39 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Set up global error handling and logging
+        $this->setupErrorLogging();
+    }
+    
+    /**
+     * Set up global error logging for the application.
+     */
+    private function setupErrorLogging(): void
+    {
+        // Log all SQL queries with bindings in local environment
+        if (app()->environment('local')) {
+            \DB::listen(function ($query) {
+                Log::debug(
+                    'SQL Query', 
+                    [
+                        'sql' => $query->sql,
+                        'bindings' => $query->bindings,
+                        'time' => $query->time . 'ms'
+                    ]
+                );
+            });
+        }
+        
+        // Log database query errors
+        \DB::connection()->getPdo()->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        
+        // Simple error logging implementation
+        app('events')->listen('eloquent.query:error', function ($event, $params) {
+            Log::channel('api')->error('Database Query Error', [
+                'sql' => $params['query'] ?? null,
+                'bindings' => $params['bindings'] ?? [],
+                'error' => $params['exception']->getMessage() ?? 'Unknown error'
+            ]);
+        });
     }
 }
