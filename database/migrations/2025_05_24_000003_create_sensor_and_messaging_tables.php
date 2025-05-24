@@ -3,19 +3,22 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
     /**
      * Run the migrations.
-     */
-    public function up(): void
+     */    public function up(): void
     {
-        // Create sensor_type enum
-        DB::statement("CREATE TYPE sensor_type AS ENUM (
-            'pressure', 'heart_rate', 'breathing_rate', 'temperature', 
-            'humidity', 'body_movement', 'posture', 'vibration', 'sleep_apnea'
-        )");
+        // Create sensor_type enum if it doesn't exist
+        $typeExists = DB::select("SELECT typname FROM pg_type WHERE typname = 'sensor_type'");
+        if (empty($typeExists)) {
+            DB::statement("CREATE TYPE sensor_type AS ENUM (
+                'pressure', 'heart_rate', 'breathing_rate', 'temperature', 
+                'humidity', 'body_movement', 'posture', 'vibration', 'sleep_apnea'
+            )");
+        }
 
         // Create sensor_readings table
         Schema::create('sensor_readings', function (Blueprint $table) {

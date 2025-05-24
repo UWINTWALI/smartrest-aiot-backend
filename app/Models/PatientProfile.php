@@ -98,9 +98,7 @@ class PatientProfile extends Model
      *
      * @var bool
      */
-    public $timestamps = false;
-
-    /**
+    public $timestamps = false;    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
@@ -110,6 +108,7 @@ class PatientProfile extends Model
         'national_id',
         'date_of_birth',
         'sex',
+        'created_at',
     ];
 
     /**

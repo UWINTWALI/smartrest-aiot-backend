@@ -78,9 +78,7 @@ class DoctorProfile extends Model
      *
      * @var bool
      */
-    public $timestamps = false;
-
-    /**
+    public $timestamps = false;    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
@@ -89,6 +87,7 @@ class DoctorProfile extends Model
         'doctor_id',
         'license_no',
         'specialty',
+        'created_at',
     ];
 
     /**

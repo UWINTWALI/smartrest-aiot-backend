@@ -41,6 +41,7 @@ class UsersTableSeeder extends Seeder
             'doctor_id' => $doctor->user_id,
             'license_no' => 'MD123456',
             'specialty' => 'Pulmonology',
+            'created_at' => now(),
         ]);
         
         // Create patient user
@@ -59,6 +60,7 @@ class UsersTableSeeder extends Seeder
             'national_id' => '1234567890123456',
             'date_of_birth' => '1985-05-15',
             'sex' => 'M',
+            'created_at' => now(),
         ]);
         
         // Assign patient to doctor
