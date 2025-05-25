@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use OpenApi\Annotations as OA;
 
 /**
@@ -70,7 +71,7 @@ use OpenApi\Annotations as OA;
 
 class PatientProfile extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUuids;
 
     /**
      * The primary key for the model.
@@ -108,7 +109,10 @@ class PatientProfile extends Model
         'national_id',
         'date_of_birth',
         'sex',
-        'created_at',
+        'emergency_contact_name',
+        'emergency_contact_phone',
+        'health_conditions',
+        'medications',
     ];
 
     /**

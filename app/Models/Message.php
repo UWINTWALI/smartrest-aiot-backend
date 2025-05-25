@@ -37,9 +37,7 @@ class Message extends Model
      *
      * @var bool
      */
-    public $timestamps = false;
-
-    /**
+    public $timestamps = false;    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
@@ -51,6 +49,7 @@ class Message extends Model
         'body',
         'type',
         'is_read',
+        'sent_at',
     ];
 
     /**
