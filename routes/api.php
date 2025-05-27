@@ -9,10 +9,14 @@ use App\Http\Controllers\SensorController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\SystemController;
+use App\Http\Controllers\TestController;
 
 // API Information Routes
 Route::get('/', fn () => ['message' => 'Welcome to SmartRest IoT API']);
 Route::get('/v1', fn () => ['message' => 'SmartRest IoT API v1 - Ready to serve your requests']);
+
+// Test Routes
+Route::get('/test-email', [TestController::class, 'testEmail']);
 
 // Category 1 • Authentication & Session Management
 Route::prefix('auth')->group(function () {
@@ -65,4 +69,9 @@ Route::middleware('auth:sanctum')->prefix('analytics')->group(function () {
 Route::middleware('auth:sanctum')->prefix('system')->group(function () {
     Route::get('status', [SystemController::class, 'getStatus']);
     Route::post('reboot', [SystemController::class, 'reboot']);
+});
+
+// Category 8 • Testing
+Route::prefix('test')->group(function () {
+    Route::get('email', [TestController::class, 'testEmail']);
 });
