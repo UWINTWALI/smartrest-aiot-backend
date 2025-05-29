@@ -26,16 +26,16 @@ class DoctorProfileFactory extends Factory
     public function definition(): array
     {
         $specialties = [
-            'Sleep Medicine',
             'Cardiology',
-            'Pulmonology',
             'Neurology',
-            'Internal Medicine',
-            'Emergency Medicine',
-            'Family Medicine',
-            'Psychiatry',
-            'Geriatrics',
-            'Critical Care Medicine'
+            'Pulmonology', 
+            'Orthopedics', 
+            'Pediatrics', 
+            'Oncology', 
+            'Dermatology', 
+            'Psychiatry', 
+            'Radiology', 
+            'Urology'
         ];
 
         $institutions = [

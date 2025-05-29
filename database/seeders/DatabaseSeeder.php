@@ -14,7 +14,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            SmartRestSeeder::class,
+            UsersTableSeeder::class, // Use the enhanced UsersTableSeeder with 100+ records
         ]);
     }
 }
