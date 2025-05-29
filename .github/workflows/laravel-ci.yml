@@ -3,65 +3,33 @@ name: Docker Hub CI/CD for SmartRest API
 on:
   push:
     branches:
-      - develop
-      - production
-  pull_request:
-    branches:
-      - "*"
+      - main
+    paths:
+      - backend/**
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_USER: postgres
-          POSTGRES_DB: smartrest_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
+    defaults:
+      run:
+        working-directory: ./backend
 
     steps:
       # Check out the repository
       - name: Checkout code
-        uses: actions/checkout@v3      # Set up PHP 8.2
+        uses: actions/checkout@v3
+
+      # Set up PHP 8.2
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: 8.2
 
-      # Copy environment file
-      - name: Copy environment file
-        run: cp .env.example .env
-
-      # Set CI environment variables
-      - name: Set CI environment variables
-        run: |
-          echo "APP_ENV=testing" >> .env
-          echo "DB_CONNECTION=pgsql" >> .env
-          echo "DB_HOST=localhost" >> .env
-          echo "DB_PORT=5432" >> .env
-          echo "DB_DATABASE=smartrest_test" >> .env
-          echo "DB_USERNAME=postgres" >> .env
-          echo "DB_PASSWORD=postgres" >> .env
-
-      # Generate application key
-      - name: Generate application key
-        run: php artisan key:generate      # Install dependencies
+      # Install dependencies
       - name: Install Composer Dependencies
         run: |
           composer install --no-interaction --prefer-dist --optimize-autoloader
-
-      # Run database migrations
-      - name: Run database migrations
-        run: php artisan migrate --force
 
       # Debug: List backend directory
       - name: List backend directory
@@ -81,6 +49,10 @@ jobs:
   docker:
     runs-on: ubuntu-latest
     needs: build
+
+    defaults:
+      run:
+        working-directory: ./backend
 
     steps:
       # Check out the repository
