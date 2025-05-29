@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - develop
+      - staging
       - production
   pull_request:
     branches:
@@ -67,6 +68,20 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
+      # Set dynamic tag based on branch
+      - name: Set dynamic tag
+        id: tags
+        run: |
+          if [ "${{ github.ref_name }}" = "develop" ]; then
+            echo "TAG=dev" >> $GITHUB_ENV
+          elif [ "${{ github.ref_name }}" = "staging" ]; then
+            echo "TAG=staging" >> $GITHUB_ENV
+          elif [ "${{ github.ref_name }}" = "production" ]; then
+            echo "TAG=prod" >> $GITHUB_ENV
+          else
+            echo "TAG=${{ github.sha }}" >> $GITHUB_ENV
+          fi
+
       # Build and push Docker image from the repo root
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
@@ -75,4 +90,5 @@ jobs:
           push: true
           tags: |
             ${{ secrets.DOCKER_HUB_USERNAME }}/smartrest-backend:latest
+            ${{ secrets.DOCKER_HUB_USERNAME }}/smartrest-backend:${{ env.TAG }}
             ${{ secrets.DOCKER_HUB_USERNAME }}/smartrest-backend:${{ github.sha }}
