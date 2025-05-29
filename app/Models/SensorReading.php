@@ -100,13 +100,13 @@ class SensorReading extends Model
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
-     */
-    protected $fillable = [
+     */    protected $fillable = [
         'patient_id',
         'bed_id',
         'sensor_type',
         'sensor_value',
         'sensor_unit',
+        'timestamp',
         'additional_metadata',
     ];
 

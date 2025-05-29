@@ -99,11 +99,14 @@ class AuthController extends Controller
                 PatientProfile::create([
                     'patient_id' => $user->user_id
                 ]);
-            }
-
-            DB::commit();
+            }            DB::commit();
             
-            event(new Registered($user));
+            try {
+                event(new Registered($user));
+            } catch (\Exception $emailException) {
+                // Log email error but continue registration process
+                \Log::error('Email verification failed: ' . $emailException->getMessage());
+            }
             
             $token = $user->createToken('auth_token')->plainTextToken;
             
